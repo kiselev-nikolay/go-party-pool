@@ -1,15 +1,9 @@
 # Go Party Pool
 
-<table>
-<tr style="border-top: none">
-  <td style="border: none"><img src="https://github.com/kiselev-nikolay/go-party-pool/raw/main/docs/gppl.png"></td>
-  <td style="border: none">
-    <p><b>Go Party Pool</b> &mdash; helps write workers pools.</p>
-    <p>It's as easy as starting a pool party.</p>
-    <p><i>(if you have a pool)</i></p>
-  </td>
-</tr>
-</table>
+![](docs/gppl.png)
+
+__Go Party Pool__ &mdash; helps write workers pools. It's as easy as starting a pool party. _(if you have a pool)_
+
 
 ```go
 func hashPassword(i interface{}) interface{} {
