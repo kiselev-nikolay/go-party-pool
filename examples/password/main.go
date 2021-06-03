@@ -11,20 +11,34 @@ import (
 	pool "github.com/kiselev-nikolay/go-party-pool"
 )
 
-func main() {
-	p := pool.NewPool(6, func(i interface{}) interface{} {
-		h := sha256.New()
-		h.Write([]byte(i.(string)))
-		return string(hex.EncodeToString(h.Sum(nil)))
-	})
-	do := func(in string) string {
-		return p.Do(in).(string)
-	}
-	p.Run(context.Background())
+func ComputeHash(password string) string {
+	h := sha256.New()
+	h.Write([]byte(password))
+	return string(hex.EncodeToString(h.Sum(nil)))
+}
 
-	checksum := do("krabs")
-	print("krabs password hash = ")
-	println(checksum)
+const WorkersNumber = 6
+
+var (
+	onceFastComputeHash sync.Once
+	doFastComputeHash   func(in string) string
+)
+
+func FastComputeHash(password string) string {
+	onceFastComputeHash.Do(func() {
+		patryPool := pool.NewPool(WorkersNumber, func(i interface{}) interface{} {
+			return ComputeHash(i.(string))
+		})
+		patryPool.Run(context.Background())
+		doFastComputeHash = func(in string) string {
+			return patryPool.Do(in).(string)
+		}
+	})
+	return doFastComputeHash(password)
+}
+
+func main() {
+	println(FastComputeHash("admin123"))
 
 	wg := &sync.WaitGroup{}
 	rand.Seed(time.Now().UnixNano())
@@ -33,7 +47,7 @@ func main() {
 		go func() {
 			randomData := make([]byte, 10)
 			rand.Read(randomData)
-			checksum := do(string(randomData))
+			checksum := FastComputeHash(string(randomData))
 			println(checksum)
 			wg.Done()
 		}()
